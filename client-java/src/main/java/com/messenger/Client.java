@@ -3,12 +3,6 @@ package com.messenger;
 import java.io.*;
 import java.net.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Denys Konakhevych
- * Date: 26.07.2016
- * Time: 19:00
- */
 public class Client
 {
   public static void main( String[] ar )
