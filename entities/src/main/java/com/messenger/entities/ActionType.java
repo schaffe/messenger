@@ -5,7 +5,7 @@ package com.messenger.entities;
  */
 public enum ActionType {
     SEND(1),
-    EXIT(-1)
+    EXIT(-1),
     ;
 
     private final byte code;
