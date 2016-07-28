@@ -1,4 +1,5 @@
 rootProject.name = 'messenger'
 include 'client-java'
 include 'server'
+include 'entities'
 
