@@ -1,5 +1,7 @@
 package com.messenger;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
 import com.messenger.entities.Action;
@@ -15,8 +17,8 @@ import java.net.Socket;
 public class Server {
 
     private static final int PORT = 6666;
-    ObjectMapper objectMapper = new ObjectMapper();
-
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private ChatManager chatManager = new ChatManager();
 
     public static void main(String[] ar) {
         Server server = Guice.createInjector().getInstance(Server.class);
@@ -25,14 +27,16 @@ public class Server {
 
     private void run() {
         try (ServerSocket ss = new ServerSocket(PORT)) {
-            Socket socket = ss.accept();
-            handleRequest(socket);
+            while (true) {
+                Socket socket = ss.accept();
+                new Thread(() -> handleRequest(socket)).start();
+            }
         } catch (Exception x) {
             x.printStackTrace();
         }
     }
 
-    private void handleRequest(Socket socket) throws IOException {
+    private void handleRequest(Socket socket) {
         try (DataInputStream in = new DataInputStream(socket.getInputStream());
              DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
             while (true) {
@@ -42,14 +46,17 @@ public class Server {
                     case SEND:
                         Message message = objectMapper.readValue(action.getPayload(), Message.class);
 
+                        chatManager.registerParticipants(new StreamSender(message.getSender(), out));
+
                         System.out.println("Got: " + message.getContent());
-                        out.writeUTF(message.getContent());
-                        out.flush();
+                        chatManager.sendMessage(message);
                         break;
                     case EXIT:
                         return;
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

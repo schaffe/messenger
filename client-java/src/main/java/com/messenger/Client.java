@@ -8,12 +8,15 @@ import com.messenger.entities.Sender;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.UUID;
 
 public class Client {
-    ObjectMapper objectMapper = new ObjectMapper();
+
     private static final int SERVER_PORT = 6666;
     private static final String ADDRESS = "127.0.0.1";
+
+    ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] ar) {
 
@@ -22,19 +25,21 @@ public class Client {
     }
 
     private void run() {
-        try {
+        try(Scanner keyboard = new Scanner(System.in)) {
             InetAddress ipAddress = InetAddress.getByName(ADDRESS);
+
             try (Socket socket = new Socket(ipAddress, SERVER_PORT);
                  DataInputStream in = new DataInputStream(socket.getInputStream());
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                 BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in))) {
+                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());) {
+
+                new Thread(new SocketReader(in)).start();
+
                 Sender sender = new Sender()
                         .setNickName("user" + Math.round(Math.random() * 100))
                         .setUuid(UUID.randomUUID().toString());
 
                 while (true) {
-                    System.out.print("> ");
-                    String line = keyboard.readLine();
+                    String line = keyboard.nextLine();
                     if ("quit".equals(line)) {
                         writeAction(ActionType.EXIT, null, out);
                         break;
@@ -45,9 +50,6 @@ public class Client {
                             .setContent(line);
                     ActionType actionType = ActionType.SEND;
                     writeAction(actionType, message, out);
-
-                    line = in.readUTF();
-                    System.out.println(line);
                 }
             }
         } catch (Exception x) {
