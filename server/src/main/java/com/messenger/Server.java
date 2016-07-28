@@ -35,7 +35,7 @@ public class Server {
     private void handleRequest(Socket socket) throws IOException {
         try (DataInputStream in = new DataInputStream(socket.getInputStream());
              DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-            MAINLOOP: while (true) {
+            while (true) {
                 Action action = readAction(in);
 
                 switch (action.getActionType()) {
@@ -47,7 +47,7 @@ public class Server {
                         out.flush();
                         break;
                     case EXIT:
-                        break MAINLOOP;
+                        return;
                 }
             }
         }
